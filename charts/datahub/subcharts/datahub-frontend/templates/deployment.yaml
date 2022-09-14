@@ -6,7 +6,6 @@ metadata:
     {{- include "datahub-frontend.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
-  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
   selector:
     matchLabels:
       {{- include "datahub-frontend.selectorLabels" . | nindent 6 }}
@@ -54,7 +53,9 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          lifecycle: {{ .Values.lifecycle }}
+          #lifecycle: {{ .Values.lifecycle }}
+          lifecycle: 
+            {{- toYaml .Values.lifecycle | nindent 12 }}
           ports:
             - name: http
               containerPort: 9002
@@ -160,14 +161,7 @@ spec:
             - name: AUTH_OIDC_CLIENT_ID
               value: {{ .clientId }}
             - name: AUTH_OIDC_CLIENT_SECRET
-            {{- if .clientSecretRef }}
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .clientSecretRef.secretRef }}
-                  key: {{ .clientSecretRef.secretKey }}
-            {{- else }}
               value: {{ .clientSecret }}
-            {{- end }}
             - name: AUTH_OIDC_BASE_URL
               value: https://{{ (first $.Values.ingress.hosts).host }}
             {{- if eq .provider "google" }}
